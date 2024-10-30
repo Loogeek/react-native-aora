@@ -38,15 +38,11 @@ export async function createUser(
 ) {
   try {
     const id = ID.unique();
-    console.log(1111111111, id, email, password, username);
     const newAccount = await account.create(id, email, password, username);
-    console.log(5555555, !newAccount);
     if (!newAccount) throw Error;
 
     const avatarUrl = avatars.getInitials(username);
-    console.log(332222, avatarUrl);
     await signIn(email, password);
-    console.log(6666666);
     const newUser = await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.userCollectionId,
@@ -58,7 +54,6 @@ export async function createUser(
         avatar: avatarUrl,
       }
     );
-    console.log(3333333, newAccount, newUser);
     return newUser;
   } catch (error: any) {
     throw new Error(error);
@@ -121,5 +116,49 @@ export async function signOut() {
     if (error instanceof Error) {
       throw new Error(error.message);
     }
+  }
+}
+
+// Get all video Posts
+export async function getAllPosts() {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId
+    );
+
+    return posts.documents;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+// Get video posts created by user
+export async function getUserPosts(userId: string) {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      [Query.equal("creator", userId)]
+    );
+
+    return posts.documents;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+// Get latest created video posts
+export async function getLatestPosts() {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      [Query.orderDesc("$createdAt"), Query.limit(7)]
+    );
+
+    return posts.documents;
+  } catch (error) {
+    throw new Error(error);
   }
 }
